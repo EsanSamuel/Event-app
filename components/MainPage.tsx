@@ -14,28 +14,77 @@ interface Props {
 
 const MainPage = ({ events }: Props) => {
   const [search, setSearch] = React.useState("");
+  const [filterByCategories, setFilterByCategories] = React.useState("");
+
+  const filterCategories = (category: string) => {
+    return filterByCategories
+      ? events.filter((event) => event.category === category)
+      : events;
+  };
 
   const filterEvents = () => {
-    return events.filter((event) => {
-      if (search === "") {
-        return event;
-      } else {
-        if (event.title.toLowerCase().includes(search.toLocaleLowerCase())) {
-          return event;
-        } else if (
-          event.category.toLowerCase().includes(search.toLocaleLowerCase())
-        ) {
-          return event;
-        } else {
-          if (
-            event.location.toLowerCase().includes(search.toLocaleLowerCase())
-          ) {
-            return event;
-          }
-        }
-      }
-    });
+    if (!search.trim()) {
+      // Return filtered categories if search is empty
+      return filterCategories(filterByCategories);
+    }
+
+    // Normalize the search term for case-insensitive matching
+    const searchTerm = search.trim().toLowerCase();
+
+    // Helper function to check if any field matches the search term
+    const matchesSearch = (event: Event) => {
+      return [
+        event.title.toLowerCase(),
+        event.category.toLowerCase(),
+        event.location.toLowerCase(),
+      ].some((field) => field.includes(searchTerm));
+    };
+
+    // Filter categories and apply the search logic
+    return filterCategories(filterByCategories).filter(matchesSearch);
   };
+
+  const handleFilter = (category: string) => {
+    switch (category) {
+      case "Tech":
+        setFilterByCategories("Tech");
+        break;
+      case "Art":
+        setFilterByCategories("Art");
+        break;
+      case "Music":
+        setFilterByCategories("Music");
+        break;
+      case "Film":
+        setFilterByCategories("Film");
+        break;
+      case "Workshop":
+        setFilterByCategories("Workshop");
+        break;
+      case "Class":
+        setFilterByCategories("Class");
+        break;
+      case "Sports":
+        setFilterByCategories("Sports");
+        break;
+
+      case "Fitness":
+        setFilterByCategories("Fitness");
+        break;
+      case "Adventure":
+        setFilterByCategories("Adventure");
+        break;
+      case "Business":
+        setFilterByCategories("Business");
+        break;
+      case "Sports":
+        setFilterByCategories("Sports");
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -80,3 +129,25 @@ const MainPage = ({ events }: Props) => {
 };
 
 export default MainPage;
+
+/*  const filterEvents = () => {
+    return filterCategories(filterByCategories).filter((event) => {
+      if (search === "") {
+        return event;
+      } else {
+        if (event.title.toLowerCase().includes(search.toLocaleLowerCase())) {
+          return event;
+        } else if (
+          event.category.toLowerCase().includes(search.toLocaleLowerCase())
+        ) {
+          return event;
+        } else {
+          if (
+            event.location.toLowerCase().includes(search.toLocaleLowerCase())
+          ) {
+            return event;
+          }
+        }
+      }
+    });
+  };*/

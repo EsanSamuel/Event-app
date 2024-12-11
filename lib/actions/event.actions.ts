@@ -4,12 +4,32 @@ import prisma from "../prismadb";
 import { EventType, gusetType } from "../zod";
 import { getCurrentUser } from "./getCurrentUser.action";
 import { v2 as cloudinary } from "cloudinary";
+import { $Enums, Event, Guest, Reserve, User } from "@prisma/client";
+
+interface EventProps {
+  title: string;
+  thumbnail: string | null;
+  details: string;
+  location: string;
+  dateTime: string;
+  venueImages: string[];
+  capacity: number;
+  category: $Enums.EventCategory;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user: User;
+}
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
   api_key: process.env.CLOUDINARY_API_KEY!,
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
+
+const handleError = (error: unknown, context: string): void => {
+  console.log(`Error in ${context}:`, error);
+};
 
 export const createEvent = async ({
   title,
@@ -20,9 +40,10 @@ export const createEvent = async ({
   venueImages,
   capacity,
   category,
-}: EventType) => {
+}: EventType): Promise<void> => {
   try {
     const currentUser = await getCurrentUser();
+    if (!currentUser) throw new Error("User not authenticated!");
     const ThumbnailUrl = await cloudinary.uploader.upload(thumbnail!);
     let ImageUrls = [];
     if (Array.isArray(venueImages!)) {
@@ -53,11 +74,11 @@ export const createEvent = async ({
     });
     console.log(event);
   } catch (error) {
-    console.log(error);
+    handleError(error, "createEvents");
   }
 };
 
-export const getEvents = async () => {
+export const getEvents = async (): Promise<Event[]> => {
   try {
     const events = await prisma.event.findMany({
       include: {
@@ -70,11 +91,12 @@ export const getEvents = async () => {
     console.log(events);
     return events;
   } catch (error) {
-    console.log(error);
+    handleError(error, "getEvents");
+    return [];
   }
 };
 
-export const getEvent = async (eventId: string) => {
+export const getEvent = async (eventId: string): Promise<Event | null> => {
   try {
     const events = await prisma.event.findUnique({
       where: {
@@ -87,7 +109,8 @@ export const getEvent = async (eventId: string) => {
     console.log(events);
     return events;
   } catch (error) {
-    console.log(error);
+    handleError(error, "getEvent");
+    return null;
   }
 };
 
@@ -97,7 +120,7 @@ export const addGuest = async ({
   image,
   eventId,
   path,
-}: gusetType) => {
+}: gusetType): Promise<void> => {
   try {
     const ImageUrl = await cloudinary.uploader.upload(image!);
 
@@ -116,11 +139,11 @@ export const addGuest = async ({
     console.log(guests);
     revalidatePath(path);
   } catch (error) {
-    console.log(error);
+    handleError(error, "addGuest");
   }
 };
 
-export const getGuests = async (eventId: string) => {
+export const getGuests = async (eventId: string): Promise<Guest[]> => {
   try {
     const guests = await prisma.guest.findMany({
       where: {
@@ -136,11 +159,15 @@ export const getGuests = async (eventId: string) => {
     console.log(guests);
     return guests;
   } catch (error) {
-    console.log(error);
+    handleError(error, "getGuests");
+    return [];
   }
 };
 
-export const reserveEvent = async (eventId: string, path: string) => {
+export const reserveEvent = async (
+  eventId: string,
+  path: string
+): Promise<void> => {
   try {
     const currentUser = await getCurrentUser();
 
@@ -161,11 +188,11 @@ export const reserveEvent = async (eventId: string, path: string) => {
     console.log(rsvd);
     revalidatePath(path);
   } catch (error) {
-    console.log(Error);
+    handleError(error, "reserveEvent");
   }
 };
 
-export const getReserved = async () => {
+export const getReserved = async (): Promise<Reserve[]> => {
   try {
     const rsvd = await prisma.reserve.findMany({
       orderBy: {
@@ -178,11 +205,12 @@ export const getReserved = async () => {
     });
     return rsvd;
   } catch (error) {
-    console.log(error);
+    handleError(error, "getReserved");
+    return [];
   }
 };
 
-export const getAllReserved = async (eventId: string) => {
+export const getAllReserved = async (eventId: string): Promise<Reserve[]> => {
   try {
     const rsvd = await prisma.reserve.findMany({
       where: {
@@ -198,11 +226,14 @@ export const getAllReserved = async (eventId: string) => {
     });
     return rsvd;
   } catch (error) {
-    console.log(error);
+    handleError(error, "getAllReserved");
+    return [];
   }
 };
 
-export const getEventYouReservedFor = async (userId: string) => {
+export const getEventYouReservedFor = async (
+  userId: string
+): Promise<Reserve[]> => {
   try {
     const rsvd = await prisma.reserve.findMany({
       where: {
@@ -218,11 +249,12 @@ export const getEventYouReservedFor = async (userId: string) => {
     });
     return rsvd;
   } catch (error) {
-    console.log(error);
+    handleError(error, "getEventYouReservedFor");
+    return [];
   }
 };
 
-export const getUserEvent = async (userId: string) => {
+export const getUserEvent = async (userId: string): Promise<Event[]> => {
   try {
     const events = await prisma.event.findMany({
       where: {
@@ -235,6 +267,7 @@ export const getUserEvent = async (userId: string) => {
     console.log(events);
     return events;
   } catch (error) {
-    console.log(error);
+    handleError(error, "getUserEvent");
+    return [];
   }
 };

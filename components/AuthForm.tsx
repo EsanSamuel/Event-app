@@ -50,6 +50,11 @@ const AuthForm = () => {
           email,
           password,
         });
+      } else if (authVariant === "sign in") {
+        await signIn("credentials", {
+          email,
+          password,
+        });
       }
     } catch (error) {
       console.log(error);
@@ -61,10 +66,12 @@ const AuthForm = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-[22px]">
-              Create an Account!
+              {authVariant === "sign up" ? "Create an Account!" : "Login"}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[13px] pb-3 ">
-              Create an account to list events and do so much more.
+              {authVariant === "sign up"
+                ? "Create an account to list events and do so much more."
+                : "Login to list events and do so much more."}
             </AlertDialogDescription>
             <Button
               className="bg-white  rounded-full text-black mt-6 flex items-center border-gray-400  gap-4 hover:bg-white"
@@ -76,15 +83,17 @@ const AuthForm = () => {
             <Separator className="mt-5" />
 
             <div className="flex flex-col gap-4 mt-7">
-              <label className="flex flex-col gap-2">
-                {errors.username && "Error entering username"}
-                <h1 className="text-[12px] text-start">Username</h1>
-                <input
-                  className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
-                  placeholder="Enter Username"
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </label>
+              {authVariant === "sign up" && (
+                <label className="flex flex-col gap-2">
+                  {errors.username && "Error entering username"}
+                  <h1 className="text-[12px] text-start">Username</h1>
+                  <input
+                    className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                    placeholder="Enter Username"
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </label>
+              )}
               <label className="flex flex-col gap-2">
                 <h1 className="text-[12px] text-start">Email</h1>
                 <input
@@ -112,6 +121,29 @@ const AuthForm = () => {
               Sign Up
             </Button>
           </AlertDialogFooter>
+          <div className="text-center text-[12px]">
+            {authVariant === "sign up" ? (
+              <h1>
+                Already have an account?{" "}
+                <span
+                  className="ml-1 cursor-pointer"
+                  onClick={() => setAuthVariant("sign in")}
+                >
+                  Login
+                </span>
+              </h1>
+            ) : (
+              <h1>
+                Dont have an account?{" "}
+                <span
+                  className="ml-1 cursor-pointer"
+                  onClick={() => setAuthVariant("sign up")}
+                >
+                  Sign in
+                </span>
+              </h1>
+            )}
+          </div>
         </AlertDialogContent>
       </form>
     </AlertDialog>
