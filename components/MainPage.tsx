@@ -44,44 +44,34 @@ const MainPage = ({ events }: Props) => {
     return filterCategories(filterByCategories).filter(matchesSearch);
   };
 
-  const handleFilter = (category: string) => {
-    switch (category) {
-      case "Tech":
-        setFilterByCategories("Tech");
-        break;
-      case "Art":
-        setFilterByCategories("Art");
-        break;
-      case "Music":
-        setFilterByCategories("Music");
-        break;
-      case "Film":
-        setFilterByCategories("Film");
-        break;
-      case "Workshop":
-        setFilterByCategories("Workshop");
-        break;
-      case "Class":
-        setFilterByCategories("Class");
-        break;
-      case "Sports":
-        setFilterByCategories("Sports");
-        break;
+  const handleCategoryFilter = (category: string) => {
+    //Array of all the categories string
+    const categories = [
+      "Music",
+      "Art",
+      "Theater",
+      "Film",
+      "Workshop",
+      "Seminar",
+      "Class",
+      "Sports",
+      "Fitness",
+      "Adventure",
+      "Tech",
+      "Business",
+      "Networking",
+      "Charity",
+      "Community",
+      "Festival",
+      "Religious",
+      "Food",
+      "Cooking",
+    ];
 
-      case "Fitness":
-        setFilterByCategories("Fitness");
-        break;
-      case "Adventure":
-        setFilterByCategories("Adventure");
-        break;
-      case "Business":
-        setFilterByCategories("Business");
-        break;
-      case "Sports":
-        setFilterByCategories("Sports");
-        break;
-      default:
-        break;
+    //checking if the category passed as an argument is included in the array
+    if (categories.includes(category)) {
+      //set filterByCategories into the argument passed
+      setFilterByCategories(category);
     }
   };
 

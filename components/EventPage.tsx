@@ -1,6 +1,12 @@
 "use client";
-import { addGuest, getEvent, reserveEvent } from "@/lib/actions/event.actions";
-import { $Enums, Event, Guest, Reserve, User } from "@prisma/client";
+import {
+  addGuest,
+  addOrganizers,
+  bookmarkEvent,
+  getEvent,
+  reserveEvent,
+} from "@/lib/actions/event.actions";
+import { $Enums, Event, Guest, Pinn, Reserve, User } from "@prisma/client";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import React, { useTransition } from "react";
@@ -22,6 +28,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import QRCode from "qrcode";
+import { CiBookmark } from "react-icons/ci";
+import { FaBookmark } from "react-icons/fa";
 
 interface IEventProps {
   event: {
@@ -36,13 +44,21 @@ interface IEventProps {
     category: $Enums.EventCategory;
     createdAt: Date;
     updatedAt: Date;
-    user: {
-      id: string;
-    };
+    user: User;
+    userId: string;
   };
   currentUser: User;
   guests: Guest[];
   rsvd: Reserve[];
+  bookmarked: {
+    id: string;
+    eventId: string;
+    userId: string;
+    user: User;
+    event: Event;
+    pinnedAt: Date;
+  }[];
+  users: User[];
 }
 
 interface reservedProps {
@@ -54,11 +70,22 @@ interface reservedProps {
   };
 }
 
-const EventPage = ({ event, currentUser, guests, rsvd }: IEventProps) => {
+type RoleProps = "ADMIN" | "MODERATOR" | "CONTRIBUTOR";
+
+const EventPage = ({
+  event,
+  currentUser,
+  guests,
+  rsvd,
+  bookmarked,
+  users,
+}: IEventProps) => {
   const [image, setImage] = React.useState("");
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [src, setSrc] = React.useState<string>("");
+  const [role, setRole] = React.useState<RoleProps | "">("");
+  const [userId, setUserId] = React.useState("");
   const isAuthor = event.user.id === currentUser.id;
   const path = usePathname();
   const [isPending, startTransition] = useTransition();
@@ -110,189 +137,272 @@ const EventPage = ({ event, currentUser, guests, rsvd }: IEventProps) => {
     QRCode.toDataURL(`http://localhost:3000/`).then(setSrc);
   };
 
+  const handleBookmark = async () => {
+    try {
+      startTransition(async () => {
+        const eventId = event.id;
+        const userId = currentUser.id;
+        await bookmarkEvent(eventId, userId);
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const isBookmarked = React.useMemo(() => {
+    const bookmark = bookmarked.map((bookmark) => bookmark.user.id);
+    return bookmark.includes(currentUser.id);
+  }, [currentUser.id]);
+
+  const handleAddOganizers = async () => {
+    try {
+      const eventId = event.id;
+      console.log(userId, eventId, role, path)
+      await addOrganizers(userId, eventId, role, path);
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
   return (
-    <div className="lg:px-[15%] px-3 lg:py-10 py-3 flex flex-col items-center">
-      <h1 className="text-center font-bold text-[22px] pb-5">Event Details</h1>
-      <Image
-        src={event?.thumbnail!}
-        alt="event image"
-        className="rounded-[10px] w-full lg:w-[700px] lg:h-[400px] h-[250px]"
-        width={5000}
-        height={5000}
-      />
+    <>
+      <div className="lg:px-[15%] px-3 lg:py-10 py-3 flex flex-col items-center">
+        <h1 className="text-center font-bold text-[22px] pb-5">
+          Event Details
+        </h1>
+        <Image
+          src={event?.thumbnail!}
+          alt="event image"
+          className="rounded-[10px] w-full lg:w-[700px] lg:h-[400px] h-[250px]"
+          width={5000}
+          height={5000}
+        />
 
-      <h1 className="text-[30px] font-bold text-center pt-5">{event?.title}</h1>
-      <div className="grid grid-cols-2 gap-8 mt-10">
-        <div className="flex gap-5 items-center">
-          <CiLocationOn /> {event.location}
+        <h1 className="text-[30px] font-bold text-center pt-5">
+          {event?.title}
+        </h1>
+        <div className="flex justify-end mt-2">
+          {!isBookmarked ? (
+            <CiBookmark size={22} onClick={handleBookmark} />
+          ) : (
+            <FaBookmark size={22} className="text-[#1da1f2]" />
+          )}
         </div>
-        <div className="flex gap-5 items-center">
-          <CiCalendarDate /> {event.dateTime}
+        <div className="grid grid-cols-2 gap-8 mt-10">
+          <div className="flex gap-5 items-center">
+            <CiLocationOn /> {event.location}
+          </div>
+          <div className="flex gap-5 items-center">
+            <CiCalendarDate /> {event.dateTime}
+          </div>
+          <div className="flex gap-5 items-center">
+            <MdOutlineCategory /> {event.category}
+          </div>
+          <div className="flex gap-5 items-center">
+            <MdOutlineReduceCapacity /> {event.capacity}
+          </div>
         </div>
-        <div className="flex gap-5 items-center">
-          <MdOutlineCategory /> {event.category}
-        </div>
-        <div className="flex gap-5 items-center">
-          <MdOutlineReduceCapacity /> {event.capacity}
-        </div>
-      </div>
-      <textarea
-        value={event?.details}
-        className="h-auto w-full min-h-[400px] outline-none mt-10  text-[14px]"
-        readOnly
-      ></textarea>
+        <textarea
+          value={event?.details}
+          className="h-auto w-full min-h-[400px] outline-none mt-10  text-[14px]"
+          readOnly
+        ></textarea>
 
-      <div className="mt-10 text-center ">
-        <h1 className="font-bold text-[20px]">Guests</h1>
-        <p className="text-gray-600 text-[13px]">
-          Here are the guests invited for this event
-        </p>
-        {guests?.length > 0 ? (
-          <div className="grid lg:grid-cols-4 grid-cols-2 gap-5 mt-5">
-            {guests?.map((guest) => (
-              <div
-                className=" flex flex-col gap-3 max-w-[300px]"
-                key={guest.id}
-              >
-                <Image
-                  src={guest.image!}
-                  alt="event image"
-                  className="rounded-[10px] w-full h-[140px]"
-                  width={300}
-                  height={300}
-                />
-                <div className="text-center">
-                  <h1 className="text-[16px] text-center font-bold">
-                    {guest.name}
-                  </h1>
-                  <p className=" text-center text-[12px]">
-                    {guest.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-[14px] mt-5">No Guest Added!</div>
-        )}
-        {isAuthor && (
-          <AlertDialog>
-            <AlertDialogTrigger className="mt-5 bg-[#121212] rounded-full py-2 text-white px-4 text-[11px]">
-              Add Guests
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Guests</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Add guests to this event!
-                </AlertDialogDescription>
-                <div className=" mt-3 flex flex-col gap-2">
-                  {image && (
-                    <div className="flex items-center justify-center rounded-full">
-                      <Image
-                        src={image}
-                        width={200}
-                        height={200}
-                        className="rounded-full w-20 h-20"
-                        alt="guest image"
-                      />
-                    </div>
-                  )}
-                  <label className="flex flex-col gap-2">
-                    <h1 className="text-[12px] text-start">Guest name</h1>
-                    <input
-                      className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
-                      placeholder="Enter Name"
-                      type="text"
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                  </label>
-                  <label className="flex flex-col gap-2">
-                    <h1 className="text-[12px] text-start">
-                      Guest description
-                    </h1>
-                    <input
-                      className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
-                      placeholder="Enter description"
-                      type="text"
-                      onChange={(e) => setDescription(e.target.value)}
-                    />
-                  </label>
-                  <label className="flex flex-col gap-2">
-                    <h1 className="text-[12px] text-start">Guest Image</h1>
-                    <input
-                      className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
-                      type="file"
-                      onChange={handleImageChange}
-                    />
-                  </label>
-                </div>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleAddGuest}>
-                  Continue
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
-      </div>
-      <div className="mt-10 text-center">
-        <h1 className="font-bold text-[20px]">Venue Images</h1>
-        <p className="text-gray-600 text-[13px]">
-          Here are the venue images for this event
-        </p>
-        {event?.venueImages?.length > 0 ? (
-          <div className="grid lg:grid-cols-4 grid-cols-2 gap-5 mt-5">
-            {event?.venueImages?.map((image, index) => (
-              <div className=" flex flex-col gap-3 max-w-[300px]" key={index}>
-                <Image
-                  src={image!}
-                  alt="event image"
-                  className="rounded-[10px] w-full h-[140px]"
-                  width={300}
-                  height={300}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-[14px] mt-5">No Venue Image!</div>
-        )}
-      </div>
-      <Separator className="mt-5" />
-      {src !== "" && (
-        <div className=" mt-10 flex flex-col items-center justify-center">
-          <Image
-            src={src}
-            alt="qr code"
-            width={500}
-            height={500}
-            className="w-[150px] h-[150px]"
-          />
-          <p className="mt-3 text-[13px]">
-            Please show this code at the event and scan it to proceed
+        <div className="mt-10 text-center ">
+          <h1 className="font-bold text-[20px]">Guests</h1>
+          <p className="text-gray-600 text-[13px]">
+            Here are the guests invited for this event
           </p>
+          {guests?.length > 0 ? (
+            <div className="grid lg:grid-cols-4 grid-cols-2 gap-5 mt-5">
+              {guests?.map((guest) => (
+                <div
+                  className=" flex flex-col gap-3 max-w-[300px]"
+                  key={guest.id}
+                >
+                  <Image
+                    src={guest.image!}
+                    alt="event image"
+                    className="rounded-[10px] w-full h-[140px]"
+                    width={300}
+                    height={300}
+                  />
+                  <div className="text-center">
+                    <h1 className="text-[16px] text-center font-bold">
+                      {guest.name}
+                    </h1>
+                    <p className=" text-center text-[12px]">
+                      {guest.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-[14px] mt-5">No Guest Added!</div>
+          )}
+          {isAuthor && (
+            <AlertDialog>
+              <AlertDialogTrigger className="mt-5 bg-[#121212] rounded-full py-2 text-white px-4 text-[11px]">
+                Add Guests
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Guests</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Add guests to this event!
+                  </AlertDialogDescription>
+                  <div className=" mt-3 flex flex-col gap-2">
+                    {image && (
+                      <div className="flex items-center justify-center rounded-full">
+                        <Image
+                          src={image}
+                          width={200}
+                          height={200}
+                          className="rounded-full w-20 h-20"
+                          alt="guest image"
+                        />
+                      </div>
+                    )}
+                    <label className="flex flex-col gap-2">
+                      <h1 className="text-[12px] text-start">Guest name</h1>
+                      <input
+                        className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                        placeholder="Enter Name"
+                        type="text"
+                        onChange={(e) => setName(e.target.value)}
+                      />
+                    </label>
+                    <label className="flex flex-col gap-2">
+                      <h1 className="text-[12px] text-start">
+                        Guest description
+                      </h1>
+                      <input
+                        className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                        placeholder="Enter description"
+                        type="text"
+                        onChange={(e) => setDescription(e.target.value)}
+                      />
+                    </label>
+                    <label className="flex flex-col gap-2">
+                      <h1 className="text-[12px] text-start">Guest Image</h1>
+                      <input
+                        className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                        type="file"
+                        onChange={handleImageChange}
+                      />
+                    </label>
+                  </div>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleAddGuest}>
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
-      )}
-      {!isReserved ? (
-        <Button
-          className="rounded-full bg-[#1da1f2] lg:w-[400px] w-full mt-10 hover:bg-[#1da1f2]"
-          onClick={handleReserve}
-          disabled={isPending}
-        >
-          {!isPending ? "Reserve" : "Reserving..."}
-        </Button>
-      ) : (
-        <Button
-          className="rounded-full bg-[#1da1f2] lg:w-[400px] w-full mt-10 hover:bg-[#1da1f2]"
-          onClick={generateQrcode}
-        >
-          You've reserved! Generate QR code
-        </Button>
-      )}
-    </div>
+        <div className="mt-10 text-center">
+          <h1 className="font-bold text-[20px]">Venue Images</h1>
+          <p className="text-gray-600 text-[13px]">
+            Here are the venue images for this event
+          </p>
+          {event?.venueImages?.length > 0 ? (
+            <div className="grid lg:grid-cols-4 grid-cols-2 gap-5 mt-5">
+              {event?.venueImages?.map((image, index) => (
+                <div className=" flex flex-col gap-3 max-w-[300px]" key={index}>
+                  <Image
+                    src={image!}
+                    alt="event image"
+                    className="rounded-[10px] w-full h-[140px]"
+                    width={300}
+                    height={300}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-[14px] mt-5">No Venue Image!</div>
+          )}
+        </div>
+        <AlertDialog>
+          <AlertDialogTrigger className="mt-5 bg-[#121212] rounded-full py-2 text-white px-4 text-[11px]">
+            Settings
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Event Settings</AlertDialogTitle>
+              <AlertDialogDescription>
+                As an event admin, contributor or moderator, you have access to
+                this event settings
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex flex-col gap-2">
+              <h1>Event Organizers</h1>
+              <label className="flex flex-col gap-2">
+                <select className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]">
+                  <option>Add user</option>
+                  {users.map((user) => (
+                    <option key={user.id} onChange={() => setUserId(user.id)}>
+                      {user.username}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-2">
+                <select
+                  className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                  onChange={(e) => setRole(e.target.value as RoleProps)}
+                >
+                  <option>Add Role</option>
+                  <option>ADMIN</option>
+                  <option>CONTRIBUTOR</option>
+                  <option>MODERATOR</option>
+                </select>
+              </label>
+            </div>
+            <Separator className="my-2" />
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction>Continue</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        <Separator className="mt-5" />
+        {src !== "" && (
+          <div className=" mt-10 flex flex-col items-center justify-center">
+            <Image
+              src={src}
+              alt="qr code"
+              width={500}
+              height={500}
+              className="w-[150px] h-[150px]"
+            />
+            <p className="mt-3 text-[13px]">
+              Please show this code at the event and scan it to proceed
+            </p>
+          </div>
+        )}
+        {!isReserved ? (
+          <Button
+            className="rounded-full bg-[#1da1f2] lg:w-[400px] w-full mt-10 hover:bg-[#1da1f2]"
+            onClick={handleReserve}
+            disabled={isPending}
+          >
+            {!isPending ? "Reserve" : "Reserving..."}
+          </Button>
+        ) : (
+          <Button
+            className="rounded-full bg-[#1da1f2] lg:w-[400px] w-full mt-10 hover:bg-[#1da1f2]"
+            onClick={generateQrcode}
+          >
+            You've reserved! Generate QR code
+          </Button>
+        )}
+      </div>
+    </>
   );
 };
 

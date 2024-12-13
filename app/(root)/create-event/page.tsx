@@ -234,7 +234,8 @@ const page = () => {
               className="border-[1px] h-[40px] rounded-full px-5 text-[12px]"
               onChange={handleChange("category")}
             >
-              <option>Select Category</option>Music
+              <option>Select Category</option>
+              <option>Music</option>
               <option>Art</option>
               <option>Theater</option>
               <option>Film</option>

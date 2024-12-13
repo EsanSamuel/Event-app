@@ -4,7 +4,15 @@ import prisma from "../prismadb";
 import { EventType, gusetType } from "../zod";
 import { getCurrentUser } from "./getCurrentUser.action";
 import { v2 as cloudinary } from "cloudinary";
-import { $Enums, Event, Guest, Reserve, User } from "@prisma/client";
+import {
+  $Enums,
+  Event,
+  Guest,
+  Organizer,
+  Pinn,
+  Reserve,
+  User,
+} from "@prisma/client";
 
 interface EventProps {
   title: string;
@@ -269,5 +277,132 @@ export const getUserEvent = async (userId: string): Promise<Event[]> => {
   } catch (error) {
     handleError(error, "getUserEvent");
     return [];
+  }
+};
+
+export const bookmarkEvent = async (
+  eventId: string,
+  userId: string
+): Promise<void> => {
+  try {
+    const bookmark = await prisma.pinn.create({
+      data: {
+        event: {
+          connect: {
+            id: eventId,
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    });
+    console.log(bookmark);
+  } catch (error) {
+    handleError(error, "bookmarkEvent");
+  }
+};
+
+export const getBookmarks = async (userId: string): Promise<Pinn[]> => {
+  try {
+    const bookmarks = await prisma.pinn.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        user: true,
+        event: true,
+      },
+    });
+    return bookmarks;
+  } catch (error) {
+    handleError(error, "getBookmarks");
+    return [];
+  }
+};
+
+export const getBookmarkedEvents = async (eventId: string): Promise<Pinn[]> => {
+  try {
+    const bookmarks = await prisma.pinn.findMany({
+      where: {
+        eventId,
+      },
+      include: {
+        user: true,
+        event: true,
+      },
+    });
+    return bookmarks;
+  } catch (error) {
+    handleError(error, "getBookmarkedEvents");
+    return [];
+  }
+};
+
+export const addOrganizers = async (
+  userId: string,
+  eventId: string,
+  role: "ADMIN" | "MODERATOR" | "CONTRIBUTOR",
+  path: string
+): Promise<void> => {
+  try {
+    const organizer = await prisma.organizer.create({
+      data: {
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        event: {
+          connect: {
+            id: eventId,
+          },
+        },
+        role,
+      },
+    });
+    console.log(organizer);
+    revalidatePath(path);
+  } catch (error) {
+    handleError(error, "addOrganizers");
+  }
+};
+
+export const getOrganizers = async (eventId: string): Promise<Organizer[]> => {
+  try {
+    const getAllOrganizers = await prisma.organizer.findMany({
+      where: {
+        eventId,
+      },
+      include: {
+        user: true,
+      },
+    });
+    return getAllOrganizers;
+  } catch (error) {
+    handleError(error, "getOrganizers");
+    return [];
+  }
+};
+
+export const authorizeRole = async (
+  userId: string,
+  eventId: string,
+  requiredRoles: $Enums.OrganizerRole[]
+): Promise<boolean> => {
+  try {
+    const organizer = await prisma.organizer.findFirst({
+      where: {
+        userId,
+        eventId,
+        role: { in: requiredRoles },
+      },
+    });
+    return !!organizer; // Return true if the user has one of the required roles
+  } catch (error) {
+    handleError(error, "authorizeRole");
+    return false;
   }
 };
