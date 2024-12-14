@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import prisma from "../prismadb";
-import { EventType, gusetType } from "../zod";
+import { EventType, gusetType, UpdateEventType } from "../zod";
 import { getCurrentUser } from "./getCurrentUser.action";
 import { v2 as cloudinary } from "cloudinary";
 import {
@@ -86,6 +86,52 @@ export const createEvent = async ({
   }
 };
 
+export const updateEvent = async ({
+  title,
+  thumbnail,
+  details,
+  location,
+  dateTime,
+  venueImages,
+  capacity,
+  category,
+  eventId,
+}: UpdateEventType): Promise<void> => {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) throw new Error("User not authenticated!");
+    const ThumbnailUrl = await cloudinary.uploader.upload(thumbnail!);
+    let ImageUrls = [];
+    if (Array.isArray(venueImages!)) {
+      for (const image of venueImages!) {
+        const imageurl = await cloudinary.uploader.upload(image);
+        ImageUrls.push(imageurl.url);
+      }
+    } else {
+      throw new Error("Invalid venueImages: expected an array.");
+    }
+
+    const event = await prisma.event.update({
+      where: {
+        id: eventId,
+      },
+      data: {
+        title,
+        thumbnail: ThumbnailUrl.url,
+        details,
+        location,
+        dateTime,
+        venueImages: ImageUrls,
+        capacity,
+        category,
+      },
+    });
+    console.log(event);
+  } catch (error) {
+    handleError(error, "updateEvent");
+  }
+};
+
 export const getEvents = async (): Promise<Event[]> => {
   try {
     const events = await prisma.event.findMany({
@@ -119,6 +165,19 @@ export const getEvent = async (eventId: string): Promise<Event | null> => {
   } catch (error) {
     handleError(error, "getEvent");
     return null;
+  }
+};
+
+export const deleteEvent = async (eventId: string): Promise<void> => {
+  try {
+    await prisma.event.delete({
+      where: {
+        id: eventId,
+      },
+    });
+    console.log("Event deleted!");
+  } catch (error) {
+    handleError(error, "deleteEvent");
   }
 };
 
@@ -169,6 +228,19 @@ export const getGuests = async (eventId: string): Promise<Guest[]> => {
   } catch (error) {
     handleError(error, "getGuests");
     return [];
+  }
+};
+
+export const deleteGuest = async (guestId: string): Promise<void> => {
+  try {
+    await prisma.guest.delete({
+      where: {
+        id: guestId,
+      },
+    });
+    console.log("Guest deleted!");
+  } catch (error) {
+    handleError(error, "deleteGuest");
   }
 };
 
@@ -323,6 +395,19 @@ export const getBookmarks = async (userId: string): Promise<Pinn[]> => {
   }
 };
 
+export const deleteBookmark = async (bookmarkId: string) => {
+  try {
+    await prisma.pinn.delete({
+      where: {
+        id: bookmarkId,
+      },
+    });
+    console.log("Bookmark deleted!");
+  } catch (error) {
+    handleError(error, "deleteBookmark");
+  }
+};
+
 export const getBookmarkedEvents = async (eventId: string): Promise<Pinn[]> => {
   try {
     const bookmarks = await prisma.pinn.findMany({
@@ -404,5 +489,24 @@ export const authorizeRole = async (
   } catch (error) {
     handleError(error, "authorizeRole");
     return false;
+  }
+};
+
+export const updateRole = async (
+  organizerId: string,
+  newRole: $Enums.OrganizerRole
+) => {
+  try {
+    const update_Role = await prisma.organizer.update({
+      where: {
+        id: organizerId,
+      },
+      data: {
+        role: newRole,
+      },
+    });
+    console.log(update_Role);
+  } catch (error) {
+    handleError(error, "authorizeRole");
   }
 };

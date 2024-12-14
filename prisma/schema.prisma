@@ -43,7 +43,6 @@ model Event {
   Reserve     Reserve[]
   Guest       Guest[]
   Star        Star[]
-  Organizers  Organizers[]
   Pinn        Pinn[]
   userId      String        @db.ObjectId
 
@@ -118,18 +117,6 @@ model Star {
   starredAt DateTime @default(now())
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-}
-
-model Organizers {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String?
-  image       String
-  eventId     String   @db.ObjectId
-  AddedAt     DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 

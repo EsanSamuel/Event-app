@@ -2,13 +2,22 @@
 import {
   addGuest,
   addOrganizers,
+  authorizeRole,
   bookmarkEvent,
   getEvent,
   reserveEvent,
 } from "@/lib/actions/event.actions";
-import { $Enums, Event, Guest, Pinn, Reserve, User } from "@prisma/client";
+import {
+  $Enums,
+  Event,
+  Guest,
+  Organizer,
+  Pinn,
+  Reserve,
+  User,
+} from "@prisma/client";
 import Image from "next/image";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useTransition } from "react";
 import { IoLocationSharp } from "react-icons/io5";
 import { CiCalendarDate, CiLocationOn } from "react-icons/ci";
@@ -59,6 +68,14 @@ interface IEventProps {
     pinnedAt: Date;
   }[];
   users: User[];
+  isAuthorized: boolean;
+  organizers: {
+    id: string;
+    eventId: string;
+    userId: string;
+    role: $Enums.OrganizerRole;
+    user: User;
+  }[];
 }
 
 interface reservedProps {
@@ -70,8 +87,6 @@ interface reservedProps {
   };
 }
 
-type RoleProps = "ADMIN" | "MODERATOR" | "CONTRIBUTOR";
-
 const EventPage = ({
   event,
   currentUser,
@@ -79,15 +94,18 @@ const EventPage = ({
   rsvd,
   bookmarked,
   users,
+  isAuthorized,
+  organizers,
 }: IEventProps) => {
   const [image, setImage] = React.useState("");
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [src, setSrc] = React.useState<string>("");
-  const [role, setRole] = React.useState<RoleProps | "">("");
+  const [role, setRole] = React.useState<$Enums.OrganizerRole | "">("");
   const [userId, setUserId] = React.useState("");
   const isAuthor = event.user.id === currentUser.id;
   const path = usePathname();
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,14 +172,18 @@ const EventPage = ({
     return bookmark.includes(currentUser.id);
   }, [currentUser.id]);
 
-  const handleAddOganizers = async () => {
+  const handleAddOrganizers = async () => {
     try {
       const eventId = event.id;
-      console.log(userId, eventId, role, path)
+      console.log(userId, eventId, role);
       await addOrganizers(userId, eventId, role, path);
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
+  };
+
+  const handleEditPage = () => {
+    return router.push(`/edit-event/${event.id}`);
   };
 
   return (
@@ -241,7 +263,7 @@ const EventPage = ({
           ) : (
             <div className="text-center text-[14px] mt-5">No Guest Added!</div>
           )}
-          {isAuthor && (
+          {(isAuthor || isAuthorized) && (
             <AlertDialog>
               <AlertDialogTrigger className="mt-5 bg-[#121212] rounded-full py-2 text-white px-4 text-[11px]">
                 Add Guests
@@ -296,7 +318,10 @@ const EventPage = ({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleAddGuest}>
+                  <AlertDialogAction
+                    onClick={handleAddGuest}
+                    className="bg-[#121212]"
+                  >
                     Continue
                   </AlertDialogAction>
                 </AlertDialogFooter>
@@ -304,6 +329,7 @@ const EventPage = ({
             </AlertDialog>
           )}
         </div>
+        <Separator className="mt-5" />
         <div className="mt-10 text-center">
           <h1 className="font-bold text-[20px]">Venue Images</h1>
           <p className="text-gray-600 text-[13px]">
@@ -327,49 +353,111 @@ const EventPage = ({
             <div className="text-center text-[14px] mt-5">No Venue Image!</div>
           )}
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger className="mt-5 bg-[#121212] rounded-full py-2 text-white px-4 text-[11px]">
-            Settings
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Event Settings</AlertDialogTitle>
-              <AlertDialogDescription>
-                As an event admin, contributor or moderator, you have access to
-                this event settings
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="flex flex-col gap-2">
-              <h1>Event Organizers</h1>
-              <label className="flex flex-col gap-2">
-                <select className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]">
-                  <option>Add user</option>
-                  {users.map((user) => (
-                    <option key={user.id} onChange={() => setUserId(user.id)}>
-                      {user.username}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex flex-col gap-2">
-                <select
-                  className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
-                  onChange={(e) => setRole(e.target.value as RoleProps)}
+
+        <Separator className="mt-5" />
+        <div className="mt-10 text-center">
+          <h1 className="font-bold text-[20px]">Event Organizers</h1>
+          <p className="text-gray-600 text-[13px]">
+            Here are the organizers for this event
+          </p>
+          {organizers.length > 0 ? (
+            <div className="grid lg:grid-cols-4 grid-cols-2 gap-5 mt-5">
+              {organizers?.map((organizer) => (
+                <div
+                  className=" flex flex-col gap-3 max-w-[300px]"
+                  key={organizer.id}
                 >
-                  <option>Add Role</option>
-                  <option>ADMIN</option>
-                  <option>CONTRIBUTOR</option>
-                  <option>MODERATOR</option>
-                </select>
-              </label>
+                  <Image
+                    src={organizer?.user?.image! || "/placeholder.png"}
+                    alt="event image"
+                    className="rounded-[10px] w-full h-[140px]"
+                    width={300}
+                    height={300}
+                  />
+                  <div className="text-center">
+                    <h1 className="text-[16px] text-center font-bold">
+                      {organizer?.user?.username}
+                    </h1>
+                    <p className=" text-center text-[12px]">{organizer.role}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-            <Separator className="my-2" />
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction>Continue</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          ) : (
+            <div className="text-center text-[14px] mt-5">No Organizers added!</div>
+          )}
+        </div>
+        {(isAuthor || isAuthorized) && (
+          <AlertDialog>
+            <AlertDialogTrigger className="mt-5 bg-[#121212] rounded-full py-2 text-white px-4 text-[11px]">
+              Settings
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Event Settings</AlertDialogTitle>
+                <AlertDialogDescription>
+                  As an event admin, contributor or moderator, you have access
+                  to this event settings
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="flex flex-col gap-2">
+                <h1>Event Organizers</h1>
+                <label className="flex flex-col gap-2">
+                  <select
+                    className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                    onChange={(e) => setUserId(e.target.value)}
+                  >
+                    <option value="">Add user</option>
+                    {users.map((user) => (
+                      <option
+                        key={user.id}
+                        value={user.id}
+                        onClick={() => setUserId(user.id)}
+                      >
+                        {user.username}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-2">
+                  <select
+                    className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                    onChange={(e) =>
+                      setRole(e.target.value as $Enums.OrganizerRole)
+                    }
+                  >
+                    <option>Add Role</option>
+                    <option>ADMIN</option>
+                    <option>CONTRIBUTOR</option>
+                    <option>MODERATOR</option>
+                  </select>
+                </label>
+              </div>
+              <Separator className="my-2" />
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleAddOrganizers}
+                  className="bg-[#121212]"
+                >
+                  Continue
+                </AlertDialogAction>
+              </AlertDialogFooter>
+              <Separator className="my-2" />
+              <div className="">
+                <Button className="bg-[#121212]" onClick={handleEditPage}>
+                  Edit Event
+                </Button>
+              </div>
+              <Separator className="my-2" />
+              <div className="">
+                <Button className="border-red-400 bg-white border text-red-400 w-full rounded-full">
+                  Delete Event
+                </Button>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
         <Separator className="mt-5" />
         {src !== "" && (
           <div className=" mt-10 flex flex-col items-center justify-center">
@@ -400,6 +488,11 @@ const EventPage = ({
           >
             You've reserved! Generate QR code
           </Button>
+        )}
+        {(isAuthorized || isAuthor) && (
+          <h1 className="text-gray-500 text-[12px] mt-5">
+            You can make changes to this Event
+          </h1>
         )}
       </div>
     </>

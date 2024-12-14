@@ -57,3 +57,37 @@ export const validateGuest = z.object({
 });
 
 export type gusetType = z.infer<typeof validateGuest>;
+
+export const validateUpdateEvent = z.object({
+  eventId: z.string().min(1).max(100),
+  title: z.string().min(1).max(100),
+  thumbnail: z.string().optional(),
+  details: z.string(),
+  location: z.string(),
+  dateTime: z.string(),
+  venueImages: z.array(z.string()).nullable().optional(),
+  capacity: z.number(),
+  category: z.enum([
+    "Music",
+    "Art",
+    "Theater",
+    "Film",
+    "Workshop",
+    "Seminar",
+    "Class",
+    "Sports",
+    "Fitness",
+    "Adventure",
+    "Tech",
+    "Business",
+    "Networking",
+    "Charity",
+    "Community",
+    "Festival",
+    "Religious",
+    "Food",
+    "Cooking",
+  ]),
+});
+
+export type UpdateEventType = z.infer<typeof validateUpdateEvent>;
