@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getEvents } from "@/lib/actions/event.actions";
 import { AiOutlineSearch } from "react-icons/ai";
 import { IoFilter } from "react-icons/io5";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 interface Props {
   events: Event[];
@@ -14,7 +15,10 @@ interface Props {
 
 const MainPage = ({ events }: Props) => {
   const [search, setSearch] = React.useState("");
-  const [filterByCategories, setFilterByCategories] = React.useState("");
+  const [filterByCategories, setFilterByCategories] = useLocalStorage<string>(
+    "filterCategories",
+    ""
+  );
 
   const filterCategories = (category: string) => {
     return filterByCategories
@@ -99,7 +103,10 @@ const MainPage = ({ events }: Props) => {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <button className="bg-white p-3 rounded-[10px]">
+              <button
+                className="bg-white p-3 rounded-[10px]"
+                onClick={() => setFilterByCategories("")}
+              >
                 <IoFilter size={24} />
               </button>
             </div>

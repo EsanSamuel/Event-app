@@ -8,8 +8,8 @@ import bcrypt from "bcryptjs";
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: "31527447456-kfb81f6kluj3qnr79cfajg9cri9q940h.apps.googleusercontent.com",
-      clientSecret: "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"
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
     CredentialsProvider({
       name: "credentials",
@@ -78,7 +78,7 @@ export const authOptions: AuthOptions = {
             },
           });
         }
-        console.log("Log in successful!")
+        console.log("Log in successful!");
         return true;
       } catch (error) {
         console.log(error);

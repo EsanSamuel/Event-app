@@ -414,7 +414,7 @@ const EventPage = ({
                         value={user.id}
                         onClick={() => setUserId(user.id)}
                       >
-                        {user.username}
+                        {user.email}
                       </option>
                     ))}
                   </select>
@@ -433,7 +433,7 @@ const EventPage = ({
                   </select>
                 </label>
               </div>
-              <Separator className="my-2" />
+            
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
