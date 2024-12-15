@@ -3,7 +3,7 @@ import React from "react";
 
 const useLocalStorage = <T>(
   key: string,
-  initialValue: string
+  initialValue: T
 ): [T, (value: T) => void] => {
   const [value, setValue] = React.useState<T>(() => {
     if (typeof window !== "undefined") {
