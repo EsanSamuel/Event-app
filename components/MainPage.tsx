@@ -8,10 +8,27 @@ import { getEvents } from "@/lib/actions/event.actions";
 import { AiOutlineSearch } from "react-icons/ai";
 import { IoFilter } from "react-icons/io5";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
   events: Event[];
 }
+
+interface FilterProps {
+  id: number;
+  category: string;
+}
+[];
 
 const MainPage = ({ events }: Props) => {
   const [search, setSearch] = React.useState("");
@@ -79,6 +96,27 @@ const MainPage = ({ events }: Props) => {
     }
   };
 
+  const categoryArray: FilterProps[] = [
+    { id: 1, category: "Music" },
+    { id: 2, category: "Art" },
+    { id: 3, category: "Theater" },
+    { id: 4, category: "Film" },
+    { id: 5, category: "Workshop" },
+    { id: 6, category: "Class" },
+    { id: 7, category: "Sports" },
+    { id: 8, category: "Fitness" },
+    { id: 9, category: "Adventure" },
+    { id: 10, category: "Tech" },
+    { id: 11, category: "Business" },
+    { id: 12, category: "Networking" },
+    { id: 13, category: "Charity" },
+    { id: 14, category: "Community" },
+    { id: 15, category: "Festival" },
+    { id: 16, category: "Religious" },
+    { id: 17, category: "Food" },
+    { id: 18, category: "Cooking" },
+  ];
+
   return (
     <>
       <Navbar />
@@ -103,12 +141,40 @@ const MainPage = ({ events }: Props) => {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <button
-                className="bg-white p-3 rounded-[10px]"
-                onClick={() => setFilterByCategories("")}
-              >
-                <IoFilter size={24} />
-              </button>
+
+              <AlertDialog>
+                <AlertDialogTrigger className="bg-white p-3 rounded-[10px]">
+                  <IoFilter size={24} />
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Filter Events</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Filter Events based on categories or tags
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="grid grid-cols-2 w-full gap-3">
+                    {categoryArray?.map((item) => (
+                      <Button
+                        className="bg-white border-[1px] border-gray-400 text-black hover:bg-white hover:border-[#1da1f2]"
+                        key={item.id}
+                        onClick={() => handleCategoryFilter(item.category)}
+                      >
+                        {item.category}
+                      </Button>
+                    ))}
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Close</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-[#121212]"
+                      onClick={() => setFilterByCategories("")}
+                    >
+                      Clear all Filters
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </div>
@@ -126,25 +192,3 @@ const MainPage = ({ events }: Props) => {
 };
 
 export default MainPage;
-
-/*  const filterEvents = () => {
-    return filterCategories(filterByCategories).filter((event) => {
-      if (search === "") {
-        return event;
-      } else {
-        if (event.title.toLowerCase().includes(search.toLocaleLowerCase())) {
-          return event;
-        } else if (
-          event.category.toLowerCase().includes(search.toLocaleLowerCase())
-        ) {
-          return event;
-        } else {
-          if (
-            event.location.toLowerCase().includes(search.toLocaleLowerCase())
-          ) {
-            return event;
-          }
-        }
-      }
-    });
-  };*/

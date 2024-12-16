@@ -186,6 +186,10 @@ const EventPage = ({
     return router.push(`/edit-event/${event.id}`);
   };
 
+  const handleRsvdPage = () => {
+    return router.push(`/rsvd/${event.id}`);
+  };
+
   return (
     <>
       <div className="lg:px-[15%] px-3 lg:py-10 py-3 flex flex-col items-center">
@@ -384,7 +388,9 @@ const EventPage = ({
               ))}
             </div>
           ) : (
-            <div className="text-center text-[14px] mt-5">No Organizers added!</div>
+            <div className="text-center text-[14px] mt-5">
+              No Organizers added!
+            </div>
           )}
         </div>
         {(isAuthor || isAuthorized) && (
@@ -433,7 +439,7 @@ const EventPage = ({
                   </select>
                 </label>
               </div>
-            
+
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
@@ -444,9 +450,12 @@ const EventPage = ({
                 </AlertDialogAction>
               </AlertDialogFooter>
               <Separator className="my-2" />
-              <div className="">
+              <div className="flex w-full gap-3">
                 <Button className="bg-[#121212]" onClick={handleEditPage}>
                   Edit Event
+                </Button>
+                <Button className="bg-[#121212]" onClick={handleRsvdPage}>
+                  View Rsvd
                 </Button>
               </div>
               <Separator className="my-2" />
