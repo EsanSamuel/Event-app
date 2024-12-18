@@ -5,7 +5,7 @@ import { format } from "date-fns";
 
 interface Props {
   event: Event & {
-    user: User;
+    user?: User;
   };
   currentUser: User;
   rsvd: {
@@ -13,7 +13,7 @@ interface Props {
     eventId: string;
     userId: string;
     reservedAt: Date;
-    user: User;
+    user?: User;
   }[];
   isAuthorized: boolean;
 }
@@ -28,11 +28,11 @@ const RsvdPage = ({ event, rsvd, currentUser, isAuthorized }: Props) => {
 
     const searchTerm = searchUser.trim().toLowerCase();
 
-    const matchTerm = (rsvd: Reserve & { user: User }) => {
+    const matchTerm = (rsvd: Reserve & { user?: User }) => {
       return [
-        rsvd.user.username.toLowerCase(),
-        rsvd.user.email.toLowerCase(),
-      ].some((field) => field.includes(searchTerm));
+        rsvd?.user?.username.toLowerCase(),
+        rsvd?.user?.email.toLowerCase(),
+      ].some((field) => field?.includes(searchTerm));
     };
     return rsvd.filter(matchTerm);
   };

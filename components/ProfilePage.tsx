@@ -13,16 +13,16 @@ interface Props {
   events: Event[];
   rsvd: {
     id: string;
-    event: Event;
-    user: User;
+    event?: Event;
+    user?: User;
     reservedAt: Date;
     userId: string;
     eventId: string;
   }[];
   userRsvd: {
     id: string;
-    event: Event;
-    user: User;
+    event?: Event;
+    user?: User;
     reservedAt: Date;
     userId: string;
     eventId: string;
@@ -32,14 +32,14 @@ interface Props {
     eventId: string;
     userId: string;
     pinnedAt: Date;
-    event: Event;
+    event?: Event;
   }[];
 }
 
 interface IReserveProps {
   id: string;
-  event: Event;
-  user: User;
+  event?: Event;
+  user?: User;
   reservedAt: Date;
   userId: string;
   eventId: string;
@@ -59,7 +59,9 @@ const ProfilePage = ({
   React.useEffect(() => {
     const filterReserved = async () => {
       if (!currentUser?.id) return;
-      const userRsvd = rsvd.filter((item) => item.user.id === currentUser?.id);
+      const userRsvd = rsvd.filter(
+        (item) => item?.user?.id === currentUser?.id
+      );
       console.log(userRsvd);
       setUserReserved(userRsvd);
     };
@@ -124,7 +126,7 @@ const ProfilePage = ({
           </p>
           <div className="lg:py-10 py-3 grid lg:grid-cols-4 gap-3 md:grid-cols-3 grid-cols-2 w-full pb-5">
             {bookmarked?.map((event) => (
-              <Card key={event.id} event={event.event!} />
+              <Card key={event.id} event={event?.event!} />
             ))}
           </div>
         </div>

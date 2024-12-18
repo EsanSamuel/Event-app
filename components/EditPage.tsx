@@ -38,7 +38,7 @@ interface categoryProps {
 
 interface IEvent {
   event: Event & {
-    user: User;
+    user?: User;
   };
   currentUser: User;
   isAuthorized: boolean;

@@ -25,7 +25,7 @@ type VARIANT = "sign in" | "sign up";
 
 const AuthForm = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const [authVariant, setAuthVariant] = useState<VARIANT>("sign up");
+  const [authVariant, setAuthVariant] = useState<VARIANT>("sign in");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

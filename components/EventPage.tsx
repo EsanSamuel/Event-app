@@ -57,7 +57,7 @@ interface IEventProps {
     category: $Enums.EventCategory;
     createdAt: Date;
     updatedAt: Date;
-    user: User;
+    user?: User;
     userId: string;
   };
   currentUser: User;
@@ -67,8 +67,8 @@ interface IEventProps {
     id: string;
     eventId: string;
     userId: string;
-    user: User;
-    event: Event;
+    user?: User;
+    event?: Event;
     pinnedAt: Date;
   }[];
   users: User[];
@@ -78,7 +78,7 @@ interface IEventProps {
     eventId: string;
     userId: string;
     role: $Enums.OrganizerRole;
-    user: User;
+    user?: User;
   }[];
   isAdmin: boolean;
 }
@@ -111,7 +111,7 @@ const EventPage = ({
   const [userId, setUserId] = React.useState("");
   const [roleModal, setRoleModal] = React.useState(false);
   const [deleteModal, setDeleteModal] = React.useState(false);
-  const isAuthor = event.user.id === currentUser.id;
+  const isAuthor = event?.user?.id === currentUser.id;
   const path = usePathname();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -182,7 +182,7 @@ const EventPage = ({
   };
 
   const isBookmarked = React.useMemo(() => {
-    const bookmark = bookmarked.map((bookmark) => bookmark.user.id);
+    const bookmark = bookmarked.map((bookmark) => bookmark?.user?.id);
     return bookmark.includes(currentUser.id);
   }, [currentUser.id]);
 
@@ -219,7 +219,7 @@ const EventPage = ({
   const handleDeleteEvent = async () => {
     try {
       await deleteEvent(event.id, path);
-      router.push("/")
+      router.push("/");
       toast.success("Event deleted");
     } catch (error) {
       console.log(error);
@@ -547,7 +547,10 @@ const EventPage = ({
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction className="bg-red-400 text-white" onClick={handleDeleteEvent}>
+                        <AlertDialogAction
+                          className="bg-red-400 text-white"
+                          onClick={handleDeleteEvent}
+                        >
                           Continue
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -588,7 +591,7 @@ const EventPage = ({
             className="rounded-full bg-[#1da1f2] lg:w-[400px] w-full mt-10 hover:bg-[#1da1f2]"
             onClick={generateQrcode}
           >
-            You've reserved! Generate QR code
+            Youve reserved! Generate QR code
           </Button>
         )}
         {(isAuthorized || isAuthor) && (
