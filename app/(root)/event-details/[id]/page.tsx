@@ -11,13 +11,13 @@ import { getCurrentUser } from "@/lib/actions/getCurrentUser.action";
 import { getUsers } from "@/lib/actions/user.actions";
 import React from "react";
 
-interface IParams {
+interface PageProps {
   params: {
-    id: string;
+    id: string; 
   };
 }
 
-const page = async ({ params }: IParams) => {
+const page = async ({ params }: PageProps) => {
   const currentUser = await getCurrentUser();
   const event = await getEvent(params?.id);
   const guests = await getGuests(params?.id);

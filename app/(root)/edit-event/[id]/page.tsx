@@ -4,13 +4,13 @@ import { getCurrentUser } from "@/lib/actions/getCurrentUser.action";
 import React from "react";
 import { GetServerSidePropsContext } from "next";
 
-interface IParams {
+interface PageProps {
   params: {
-    id: string;
+    id: string; 
   };
 }
 
-const page = async ({ params }: IParams) => {
+const page = async ({ params }: PageProps) => {
   const currentUser = await getCurrentUser();
   const event = await getEvent(params?.id);
   const isAuthorized = await authorizeRole(currentUser?.id!, event?.id!, [
