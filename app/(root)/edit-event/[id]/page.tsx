@@ -11,8 +11,9 @@ interface PageProps {
 }
 
 const page = async ({ params }: PageProps) => {
-  const currentUser = await getCurrentUser();
-  const event = await getEvent(params?.id);
+  const { id } = params
+   const currentUser = await getCurrentUser();
+  const event = await getEvent(id);
   const isAuthorized = await authorizeRole(currentUser?.id!, event?.id!, [
     "ADMIN",
     "MODERATOR",

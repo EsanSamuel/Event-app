@@ -10,14 +10,15 @@ import { GetServerSidePropsContext } from "next";
 
 interface PageProps {
   params: {
-    id: string; 
+    id: string;
   };
 }
 
 const page = async ({ params }: PageProps) => {
+  const { id } = params;
   const currentUser = await getCurrentUser();
-  const event = await getEvent(params?.id);
-  const rsvd = await getAllReserved(params?.id);
+  const event = await getEvent(id);
+  const rsvd = await getAllReserved(id);
   const isAuthorized = await authorizeRole(currentUser?.id!, event?.id!, [
     "ADMIN",
     "MODERATOR",

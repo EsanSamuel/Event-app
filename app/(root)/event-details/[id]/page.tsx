@@ -13,18 +13,19 @@ import React from "react";
 
 interface PageProps {
   params: {
-    id: string; 
+    id: string;
   };
 }
 
 const page = async ({ params }: PageProps) => {
+  const { id } = params;
   const currentUser = await getCurrentUser();
-  const event = await getEvent(params?.id);
-  const guests = await getGuests(params?.id);
-  const rsvd = await getAllReserved(params?.id);
-  const bookmarked = await getBookmarkedEvents(params?.id);
+  const event = await getEvent(id);
+  const guests = await getGuests(id);
+  const rsvd = await getAllReserved(id);
+  const bookmarked = await getBookmarkedEvents(id);
   const users = await getUsers();
-  const organizers = await getOrganizers(params?.id);
+  const organizers = await getOrganizers(id);
   const isAuthorized = await authorizeRole(currentUser?.id!, event?.id!, [
     "ADMIN",
     "MODERATOR",
