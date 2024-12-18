@@ -1,7 +1,6 @@
 "use server";
 import prisma from "../prismadb";
-import { UpdateUserType, UserType, validateUser } from "../zod";
-import { revalidatePath } from "next/cache";
+import { UpdateUserType, UserType } from "../zod";
 import bcrypt from "bcryptjs";
 import getSession from "./session.action";
 import { v2 as cloudinary } from "cloudinary";

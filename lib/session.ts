@@ -35,8 +35,8 @@ export const authOptions: AuthOptions = {
         }
 
         const isPasswordCorrect = await bcrypt.compare(
-          credentials?.password!,
-          user?.hashedPassword!
+          credentials?.password,
+          user?.hashedPassword
         );
 
         if (!isPasswordCorrect) {
@@ -50,36 +50,41 @@ export const authOptions: AuthOptions = {
   ],
   callbacks: {
     async session({ session }) {
-      const user = await prisma?.user?.findUnique({
-        where: {
-          email: session?.user?.email,
-        },
-      });
-      if (user) {
-        session.user.id = user.id.toString();
+      if (session?.user?.email) {
+        const user = await prisma?.user?.findUnique({
+          where: {
+            email: session.user.email,
+          },
+        });
+        if (user) {
+          session.user.id = user.id.toString();
+        }
       }
 
       return session;
     },
     async signIn({ user }: { user: User | AdapterUser }) {
       try {
-        const userExist = await prisma?.user?.findUnique({
-          where: {
-            email: user.email!,
-          },
-        });
-
-        if (!userExist) {
-          await prisma?.user?.create({
-            data: {
-              username: user.name!,
-              email: user.email!,
-              image: user.image,
+        if (user?.email) {
+          const userExist = await prisma?.user?.findUnique({
+            where: {
+              email: user.email,
             },
           });
+
+          if (!userExist) {
+            await prisma?.user?.create({
+              data: {
+                username: user.name!,
+                email: user.email!,
+                image: user.image,
+              },
+            });
+          }
+          console.log("Log in successful!");
+          return true;
         }
-        console.log("Log in successful!");
-        return true;
+        return false;
       } catch (error) {
         console.log(error);
         return false;

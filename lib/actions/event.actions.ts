@@ -14,21 +14,6 @@ import {
   User,
 } from "@prisma/client";
 
-interface EventProps {
-  title: string;
-  thumbnail: string | null;
-  details: string;
-  location: string;
-  dateTime: string;
-  venueImages: string[];
-  capacity: number;
-  category: $Enums.EventCategory;
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  user: User;
-}
-
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
   api_key: process.env.CLOUDINARY_API_KEY!,
@@ -53,7 +38,7 @@ export const createEvent = async ({
     const currentUser = await getCurrentUser();
     if (!currentUser) throw new Error("User not authenticated!");
     const ThumbnailUrl = await cloudinary.uploader.upload(thumbnail!);
-    let ImageUrls = [];
+    const ImageUrls: string[] = [];
     if (Array.isArray(venueImages!)) {
       for (const image of venueImages!) {
         const imageurl = await cloudinary.uploader.upload(image);
@@ -101,7 +86,7 @@ export const updateEvent = async ({
     const currentUser = await getCurrentUser();
     if (!currentUser) throw new Error("User not authenticated!");
     const ThumbnailUrl = await cloudinary.uploader.upload(thumbnail!);
-    let ImageUrls = [];
+    const ImageUrls: string[] = [];
     if (Array.isArray(venueImages!)) {
       for (const image of venueImages!) {
         const imageurl = await cloudinary.uploader.upload(image);
