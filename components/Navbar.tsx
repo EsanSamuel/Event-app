@@ -2,10 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { IoMdNotificationsOutline } from "react-icons/io";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import AuthForm from "./AuthForm";
 import { getCurrentUser } from "@/lib/actions/getCurrentUser.action";
-import { userAgent } from "next/server";
 import Image from "next/image";
 import { User } from "@prisma/client";
 import { IoLogOutOutline } from "react-icons/io5";

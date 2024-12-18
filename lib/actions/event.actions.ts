@@ -4,15 +4,7 @@ import prisma from "../prismadb";
 import { EventType, gusetType, UpdateEventType } from "../zod";
 import { getCurrentUser } from "./getCurrentUser.action";
 import { v2 as cloudinary } from "cloudinary";
-import {
-  $Enums,
-  Event,
-  Guest,
-  Organizer,
-  Pinn,
-  Reserve,
-  User,
-} from "@prisma/client";
+import { $Enums, Event, Guest, Organizer, Pinn, Reserve } from "@prisma/client";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
@@ -457,6 +449,26 @@ export const getOrganizers = async (eventId: string): Promise<Organizer[]> => {
     return getAllOrganizers;
   } catch (error) {
     handleError(error, "getOrganizers");
+    return [];
+  }
+};
+
+export const getOrganizersByUser = async (
+  userId: string
+): Promise<Organizer[]> => {
+  try {
+    const getAllOrganizers = await prisma.organizer.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        user: true,
+        event: true,
+      },
+    });
+    return getAllOrganizers;
+  } catch (error) {
+    handleError(error, "getOrganizersByUser");
     return [];
   }
 };

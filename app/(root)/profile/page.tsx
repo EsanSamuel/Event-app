@@ -1,11 +1,10 @@
 import Navbar from "@/components/Navbar";
 import ProfilePage from "@/components/ProfilePage";
 import {
-  getAllReserved,
-  getBookmarkedEvents,
   getBookmarks,
   getEvents,
   getEventYouReservedFor,
+  getOrganizersByUser,
   getReserved,
   getUserEvent,
 } from "@/lib/actions/event.actions";
@@ -19,6 +18,7 @@ const Profile = async () => {
   const rsvd = await getReserved();
   const userRsvd = await getEventYouReservedFor(currentUser?.id!);
   const bookmarked = await getBookmarks(currentUser?.id!);
+  const allOrganizedEvents = await getOrganizersByUser(currentUser?.id!);
   return (
     <div>
       <Navbar />
@@ -30,6 +30,7 @@ const Profile = async () => {
           rsvd={rsvd!}
           userRsvd={userRsvd!}
           bookmarked={bookmarked!}
+          allOrganizedEvents={allOrganizedEvents!}
         />
       </div>
     </div>

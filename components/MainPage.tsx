@@ -4,7 +4,6 @@ import React from "react";
 import Card from "@/components/Card";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { getEvents } from "@/lib/actions/event.actions";
 import { AiOutlineSearch } from "react-icons/ai";
 import { IoFilter } from "react-icons/io5";
 import useLocalStorage from "@/hooks/useLocalStorage";

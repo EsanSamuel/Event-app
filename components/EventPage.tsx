@@ -2,26 +2,15 @@
 import {
   addGuest,
   addOrganizers,
-  authorizeRole,
   bookmarkEvent,
   deleteEvent,
-  getEvent,
   removeRole,
   reserveEvent,
 } from "@/lib/actions/event.actions";
-import {
-  $Enums,
-  Event,
-  Guest,
-  Organizer,
-  Pinn,
-  Reserve,
-  User,
-} from "@prisma/client";
+import { $Enums, Event, Guest, Pinn, Reserve, User } from "@prisma/client";
 import Image from "next/image";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useTransition } from "react";
-import { IoLocationSharp } from "react-icons/io5";
 import { CiCalendarDate, CiLocationOn } from "react-icons/ci";
 import { MdOutlineCategory } from "react-icons/md";
 import { MdOutlineReduceCapacity } from "react-icons/md";
@@ -41,7 +30,7 @@ import {
 import QRCode from "qrcode";
 import { CiBookmark } from "react-icons/ci";
 import { FaBookmark } from "react-icons/fa";
-import { BsThreeDots, BsThreeDotsVertical } from "react-icons/bs";
+import { BsThreeDots } from "react-icons/bs";
 import toast from "react-hot-toast";
 
 interface IEventProps {
@@ -83,15 +72,6 @@ interface IEventProps {
   isAdmin: boolean;
 }
 
-interface reservedProps {
-  reserve: {
-    id: string;
-    event: Event;
-    user: User;
-    reservedAt: Date;
-  };
-}
-
 const EventPage = ({
   event,
   currentUser,
@@ -110,7 +90,6 @@ const EventPage = ({
   const [role, setRole] = React.useState<$Enums.OrganizerRole>("MODERATOR");
   const [userId, setUserId] = React.useState("");
   const [roleModal, setRoleModal] = React.useState(false);
-  const [deleteModal, setDeleteModal] = React.useState(false);
   const isAuthor = event?.user?.id === currentUser.id;
   const path = usePathname();
   const router = useRouter();
@@ -159,9 +138,11 @@ const EventPage = ({
   };
 
   const isReserved = React.useMemo(() => {
-    const rsvdUserId = rsvd.map((reserve: any) => reserve?.user?.id);
+    const rsvdUserId = rsvd.map(
+      (reserve: Reserve & { user?: User }) => reserve?.user?.id
+    );
     return rsvdUserId.includes(currentUser.id);
-  }, [currentUser.id]);
+  }, [currentUser.id, rsvd]);
 
   const generateQrcode = () => {
     QRCode.toDataURL(`http://localhost:3000/rsvd/${event?.id}`).then(setSrc);
@@ -182,9 +163,11 @@ const EventPage = ({
   };
 
   const isBookmarked = React.useMemo(() => {
-    const bookmark = bookmarked.map((bookmark) => bookmark?.user?.id);
+    const bookmark = bookmarked.map(
+      (bookmark: Pinn & { user?: User }) => bookmark?.user?.id
+    );
     return bookmark.includes(currentUser.id);
-  }, [currentUser.id]);
+  }, [currentUser.id, bookmarked]);
 
   const handleAddOrganizers = async () => {
     try {
@@ -253,16 +236,16 @@ const EventPage = ({
         </div>
         <div className="grid grid-cols-2 gap-8 mt-10">
           <div className="flex gap-5 items-center">
-            <CiLocationOn /> {event.location}
+            <CiLocationOn /> {event?.location}
           </div>
           <div className="flex gap-5 items-center">
-            <CiCalendarDate /> {event.dateTime}
+            <CiCalendarDate /> {event?.dateTime}
           </div>
           <div className="flex gap-5 items-center">
-            <MdOutlineCategory /> {event.category}
+            <MdOutlineCategory /> {event?.category}
           </div>
           <div className="flex gap-5 items-center">
-            <MdOutlineReduceCapacity /> {event.capacity}
+            <MdOutlineReduceCapacity /> {event?.capacity}
           </div>
         </div>
         <textarea
@@ -427,7 +410,9 @@ const EventPage = ({
                     <h1 className="text-[16px] text-center font-bold">
                       {organizer?.user?.username}
                     </h1>
-                    <p className=" text-center text-[12px]">{organizer.role}</p>
+                    <p className=" text-center text-[12px]">
+                      {organizer?.role}
+                    </p>
                   </div>
                   {roleModal && (
                     <Button

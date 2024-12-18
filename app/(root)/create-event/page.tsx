@@ -9,30 +9,7 @@ import React, { useState, useTransition } from "react";
 import toast from "react-hot-toast";
 import { SiGooglegemini } from "react-icons/si";
 
-interface categoryProps {
-  category:
-    | "Music"
-    | "Art"
-    | "Theater"
-    | "Film"
-    | "Workshop"
-    | "Seminar"
-    | "Class"
-    | "Sports"
-    | "Fitness"
-    | "Adventure"
-    | "Tech"
-    | "Business"
-    | "Networking"
-    | "Charity"
-    | "Community"
-    | "Festival"
-    | "Religious"
-    | "Food"
-    | "Cooking";
-}
-
-const page = () => {
+const CreateEvent = () => {
   const router = useRouter();
   const [thumbnail, setThumbnail] = React.useState<string>("");
   const [title, setTitle] = useState<string>("");
@@ -157,11 +134,11 @@ const page = () => {
           capacity,
           category: category as $Enums.EventCategory,
         });
-        toast.success("Event Listed successfully!")
+        toast.success("Event Listed successfully!");
         router.push("/");
       });
     } catch (error) {
-      toast.error("Event Listing failed!")
+      toast.error("Event Listing failed!");
       console.log(error);
     }
   };
@@ -316,4 +293,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default CreateEvent;

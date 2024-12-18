@@ -13,29 +13,6 @@ import React, { useEffect, useState, useTransition } from "react";
 import toast from "react-hot-toast";
 import { SiGooglegemini } from "react-icons/si";
 
-interface categoryProps {
-  category:
-    | "Music"
-    | "Art"
-    | "Theater"
-    | "Film"
-    | "Workshop"
-    | "Seminar"
-    | "Class"
-    | "Sports"
-    | "Fitness"
-    | "Adventure"
-    | "Tech"
-    | "Business"
-    | "Networking"
-    | "Charity"
-    | "Community"
-    | "Festival"
-    | "Religious"
-    | "Food"
-    | "Cooking";
-}
-
 interface IEvent {
   event: Event & {
     user?: User;

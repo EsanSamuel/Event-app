@@ -1,5 +1,5 @@
 "use client";
-import { $Enums, Event, Pinn, Reserve, User } from "@prisma/client";
+import { Event, Organizer, User } from "@prisma/client";
 import React from "react";
 import Image from "next/image";
 import { Separator } from "./ui/separator";
@@ -34,6 +34,10 @@ interface Props {
     pinnedAt: Date;
     event?: Event;
   }[];
+  allOrganizedEvents: {
+    id: string;
+    event?: Event;
+  }[];
 }
 
 interface IReserveProps {
@@ -52,6 +56,7 @@ const ProfilePage = ({
   rsvd,
   userRsvd,
   bookmarked,
+  allOrganizedEvents,
 }: Props) => {
   const [userReserved, setUserReserved] = React.useState<IReserveProps[]>([]);
   const router = useRouter();
@@ -115,6 +120,19 @@ const ProfilePage = ({
           <div className="lg:py-10 py-3 grid lg:grid-cols-4 gap-3 md:grid-cols-3 grid-cols-2 w-full pb-5">
             {userReserved?.map((event) => (
               <Card key={event.id} event={event.event!} />
+            ))}
+          </div>
+        </div>
+        <Separator />
+        <div className="mt-5">
+          <h1 className="text-[20px] font-bold">Organized Events</h1>
+          <p className="text-[13px] text-gray-500">
+            Events You’re a Part of as an Organizer (
+            {allOrganizedEvents?.length})
+          </p>
+          <div className="lg:py-10 py-3 grid lg:grid-cols-4 gap-3 md:grid-cols-3 grid-cols-2 w-full pb-5">
+            {allOrganizedEvents?.map((event) => (
+              <Card key={event.id} event={event?.event!} />
             ))}
           </div>
         </div>
