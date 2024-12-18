@@ -8,14 +8,12 @@ import { getCurrentUser } from "@/lib/actions/getCurrentUser.action";
 import React from "react";
 import { GetServerSidePropsContext } from "next";
 
-interface PageProps {
-  params: {
-    id: string;
-  };
+interface IParams {
+  params: Promise<{ id: string }>;
 }
 
-const page = async ({ params }: PageProps) => {
-  const { id } = params;
+const page = async ({ params }: IParams) => {
+  const id = (await params).id;
   const currentUser = await getCurrentUser();
   const event = await getEvent(id);
   const rsvd = await getAllReserved(id);
