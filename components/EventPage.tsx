@@ -4,7 +4,9 @@ import {
   addOrganizers,
   authorizeRole,
   bookmarkEvent,
+  deleteEvent,
   getEvent,
+  removeRole,
   reserveEvent,
 } from "@/lib/actions/event.actions";
 import {
@@ -39,6 +41,8 @@ import {
 import QRCode from "qrcode";
 import { CiBookmark } from "react-icons/ci";
 import { FaBookmark } from "react-icons/fa";
+import { BsThreeDots, BsThreeDotsVertical } from "react-icons/bs";
+import toast from "react-hot-toast";
 
 interface IEventProps {
   event: {
@@ -76,6 +80,7 @@ interface IEventProps {
     role: $Enums.OrganizerRole;
     user: User;
   }[];
+  isAdmin: boolean;
 }
 
 interface reservedProps {
@@ -96,13 +101,16 @@ const EventPage = ({
   users,
   isAuthorized,
   organizers,
+  isAdmin,
 }: IEventProps) => {
   const [image, setImage] = React.useState("");
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [src, setSrc] = React.useState<string>("");
-  const [role, setRole] = React.useState<$Enums.OrganizerRole | "">("");
+  const [role, setRole] = React.useState<$Enums.OrganizerRole>("MODERATOR");
   const [userId, setUserId] = React.useState("");
+  const [roleModal, setRoleModal] = React.useState(false);
+  const [deleteModal, setDeleteModal] = React.useState(false);
   const isAuthor = event.user.id === currentUser.id;
   const path = usePathname();
   const router = useRouter();
@@ -130,7 +138,9 @@ const EventPage = ({
       const eventId = event.id;
       await addGuest({ name, description, image, eventId, path });
       setImage("");
+      toast.success("Guest added successfully!");
     } catch (error: any) {
+      toast.error("Something went wrong!");
       console.log("Adding guest failed", error);
     }
   };
@@ -141,7 +151,9 @@ const EventPage = ({
         const eventId = event.id;
         await reserveEvent(eventId, path);
       });
+      toast.success("Event Reservation successfully");
     } catch (error) {
+      toast.error("Event Reservation Failed");
       console.log(error);
     }
   };
@@ -152,7 +164,7 @@ const EventPage = ({
   }, [currentUser.id]);
 
   const generateQrcode = () => {
-    QRCode.toDataURL(`http://localhost:3000/`).then(setSrc);
+    QRCode.toDataURL(`http://localhost:3000/rsvd/${event?.id}`).then(setSrc);
   };
 
   const handleBookmark = async () => {
@@ -162,7 +174,9 @@ const EventPage = ({
         const userId = currentUser.id;
         await bookmarkEvent(eventId, userId);
       });
+      toast.success("Event bookmarked!");
     } catch (error) {
+      toast.error("Something went wrong!");
       console.log(error);
     }
   };
@@ -177,8 +191,10 @@ const EventPage = ({
       const eventId = event.id;
       console.log(userId, eventId, role);
       await addOrganizers(userId, eventId, role, path);
+      toast.success("Organizer added!");
     } catch (error) {
       console.log(error);
+      toast.error("Something went wrong!");
     }
   };
 
@@ -188,6 +204,27 @@ const EventPage = ({
 
   const handleRsvdPage = () => {
     return router.push(`/rsvd/${event.id}`);
+  };
+
+  const handleDeleteRole = async (organizerId: string) => {
+    try {
+      await removeRole(organizerId, path);
+      toast.success("Organizer removed!");
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong!");
+    }
+  };
+
+  const handleDeleteEvent = async () => {
+    try {
+      await deleteEvent(event.id, path);
+      router.push("/")
+      toast.success("Event deleted");
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong!");
+    }
   };
 
   return (
@@ -371,6 +408,14 @@ const EventPage = ({
                   className=" flex flex-col gap-3 max-w-[300px]"
                   key={organizer.id}
                 >
+                  {(isAuthor || isAdmin) && (
+                    <div
+                      className="mt-[2px] ml-2 absolute cursor-pointer"
+                      onClick={() => setRoleModal(!roleModal)}
+                    >
+                      <BsThreeDots className="text-white" size={22} />
+                    </div>
+                  )}
                   <Image
                     src={organizer?.user?.image! || "/placeholder.png"}
                     alt="event image"
@@ -384,6 +429,14 @@ const EventPage = ({
                     </h1>
                     <p className=" text-center text-[12px]">{organizer.role}</p>
                   </div>
+                  {roleModal && (
+                    <Button
+                      onClick={() => handleDeleteRole(organizer.id)}
+                      className="border-red-400 hover:bg-white hover:opacity-50 bg-white border text-red-400 w-full rounded-full"
+                    >
+                      Remove
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -408,61 +461,101 @@ const EventPage = ({
               </AlertDialogHeader>
               <div className="flex flex-col gap-2">
                 <h1>Event Organizers</h1>
-                <label className="flex flex-col gap-2">
-                  <select
-                    className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
-                    onChange={(e) => setUserId(e.target.value)}
-                  >
-                    <option value="">Add user</option>
-                    {users.map((user) => (
-                      <option
-                        key={user.id}
-                        value={user.id}
-                        onClick={() => setUserId(user.id)}
+                {isAuthor || isAdmin ? (
+                  <div className="flex flex-col gap-2">
+                    <label className="flex flex-col gap-2">
+                      <select
+                        className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                        onChange={(e) => setUserId(e.target.value)}
                       >
-                        {user.email}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="flex flex-col gap-2">
-                  <select
-                    className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
-                    onChange={(e) =>
-                      setRole(e.target.value as $Enums.OrganizerRole)
-                    }
-                  >
-                    <option>Add Role</option>
-                    <option>ADMIN</option>
-                    <option>CONTRIBUTOR</option>
-                    <option>MODERATOR</option>
-                  </select>
-                </label>
+                        <option value="">Add user</option>
+                        {users.map((user) => (
+                          <option
+                            key={user.id}
+                            value={user.id}
+                            onClick={() => setUserId(user.id)}
+                          >
+                            {user.email}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="flex flex-col gap-2">
+                      <select
+                        className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                        onChange={(e) =>
+                          setRole(e.target.value as $Enums.OrganizerRole)
+                        }
+                      >
+                        <option>Add Role</option>
+                        <option>ADMIN</option>
+                        <option>CONTRIBUTOR</option>
+                        <option>MODERATOR</option>
+                      </select>
+                    </label>
+                  </div>
+                ) : (
+                  <p className="mt-2 text-gray-500">
+                    Only Event Admin can add organizers!
+                  </p>
+                )}
               </div>
 
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleAddOrganizers}
-                  className="bg-[#121212]"
-                >
-                  Continue
-                </AlertDialogAction>
-              </AlertDialogFooter>
+              {(isAuthor || isAdmin) && (
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleAddOrganizers}
+                    className="bg-[#121212]"
+                  >
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              )}
               <Separator className="my-2" />
-              <div className="flex w-full gap-3">
-                <Button className="bg-[#121212]" onClick={handleEditPage}>
+              <div className="flex w-full justify-between gap-3">
+                <Button
+                  className="bg-[#1da1f2] w-full rounded-full"
+                  onClick={handleEditPage}
+                >
                   Edit Event
                 </Button>
-                <Button className="bg-[#121212]" onClick={handleRsvdPage}>
+                <Button
+                  className="bg-[#1da1f2] w-full rounded-full"
+                  onClick={handleRsvdPage}
+                >
                   View Rsvd
                 </Button>
               </div>
               <Separator className="my-2" />
               <div className="">
-                <Button className="border-red-400 bg-white border text-red-400 w-full rounded-full">
-                  Delete Event
-                </Button>
+                {isAuthor || isAdmin ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger className="border-red-400 hover:bg-white bg-white border py-2 text-[15px] text-red-400 w-full rounded-full">
+                      Delete Event
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete your event and remove your data from our
+                          servers.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction className="bg-red-400 text-white" onClick={handleDeleteEvent}>
+                          Continue
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : (
+                  <p>Only Author or Admin can delete Event!</p>
+                )}
               </div>
             </AlertDialogContent>
           </AlertDialog>

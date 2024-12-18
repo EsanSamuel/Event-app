@@ -30,6 +30,7 @@ const page = async ({ params }: IParams) => {
     "MODERATOR",
     "CONTRIBUTOR",
   ]);
+  const isAdmin = await authorizeRole(currentUser?.id!, event?.id!, ["ADMIN"]);
   return (
     <EventPage
       event={event!}
@@ -40,6 +41,7 @@ const page = async ({ params }: IParams) => {
       users={users!}
       organizers={organizers!}
       isAuthorized={isAuthorized}
+      isAdmin={isAdmin!}
     />
   );
 };

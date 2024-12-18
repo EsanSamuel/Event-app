@@ -168,13 +168,17 @@ export const getEvent = async (eventId: string): Promise<Event | null> => {
   }
 };
 
-export const deleteEvent = async (eventId: string): Promise<void> => {
+export const deleteEvent = async (
+  eventId: string,
+  path: string
+): Promise<void> => {
   try {
     await prisma.event.delete({
       where: {
         id: eventId,
       },
     });
+    revalidatePath(path);
     console.log("Event deleted!");
   } catch (error) {
     handleError(error, "deleteEvent");
@@ -495,7 +499,7 @@ export const authorizeRole = async (
 export const updateRole = async (
   organizerId: string,
   newRole: $Enums.OrganizerRole
-) => {
+): Promise<void> => {
   try {
     const update_Role = await prisma.organizer.update({
       where: {
@@ -508,5 +512,22 @@ export const updateRole = async (
     console.log(update_Role);
   } catch (error) {
     handleError(error, "authorizeRole");
+  }
+};
+
+export const removeRole = async (
+  organizerId: string,
+  path: string
+): Promise<void> => {
+  try {
+    await prisma.organizer.delete({
+      where: {
+        id: organizerId,
+      },
+    });
+    revalidatePath(path);
+    console.log("Organizer removed!");
+  } catch (error) {
+    handleError(error, "removeRole");
   }
 };

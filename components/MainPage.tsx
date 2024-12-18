@@ -156,7 +156,7 @@ const MainPage = ({ events }: Props) => {
                   <div className="grid grid-cols-2 w-full gap-3">
                     {categoryArray?.map((item) => (
                       <Button
-                        className="bg-white border-[1px] border-gray-400 text-black hover:bg-white hover:border-[#1da1f2]"
+                        className="bg-white border-[1px] hover:border-none border-gray-400 text-black hover:text-white hover:bg-[#1da1f2]"
                         key={item.id}
                         onClick={() => handleCategoryFilter(item.category)}
                       >

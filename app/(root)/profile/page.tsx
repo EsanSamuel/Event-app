@@ -2,6 +2,8 @@ import Navbar from "@/components/Navbar";
 import ProfilePage from "@/components/ProfilePage";
 import {
   getAllReserved,
+  getBookmarkedEvents,
+  getBookmarks,
   getEvents,
   getEventYouReservedFor,
   getReserved,
@@ -16,6 +18,7 @@ const Profile = async () => {
   const events = await getEvents();
   const rsvd = await getReserved();
   const userRsvd = await getEventYouReservedFor(currentUser?.id!);
+  const bookmarked = await getBookmarks(currentUser?.id!);
   return (
     <div>
       <Navbar />
@@ -26,6 +29,7 @@ const Profile = async () => {
           events={events!}
           rsvd={rsvd!}
           userRsvd={userRsvd!}
+          bookmarked={bookmarked!}
         />
       </div>
     </div>

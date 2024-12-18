@@ -6,6 +6,7 @@ import { $Enums } from "@prisma/client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useState, useTransition } from "react";
+import toast from "react-hot-toast";
 import { SiGooglegemini } from "react-icons/si";
 
 interface categoryProps {
@@ -156,9 +157,11 @@ const page = () => {
           capacity,
           category: category as $Enums.EventCategory,
         });
+        toast.success("Event Listed successfully!")
         router.push("/");
       });
     } catch (error) {
+      toast.error("Event Listing failed!")
       console.log(error);
     }
   };

@@ -14,7 +14,7 @@
 
 ::-webkit-scrollbar {
   width: 6px; /* Width for vertical scrollbars */
-  height: 12px; /* Height for horizontal scrollbars */
+  height: 6px; /* Height for horizontal scrollbars */
   cursor: default;
 }
 

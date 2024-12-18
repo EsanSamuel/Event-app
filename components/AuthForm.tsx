@@ -19,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
 import { Button } from "./ui/button";
 import { FcGoogle } from "react-icons/fc";
+import toast from "react-hot-toast";
 
 type VARIANT = "sign in" | "sign up";
 
@@ -50,13 +51,16 @@ const AuthForm = () => {
           email,
           password,
         });
+        toast.success("Account created successfully!");
       } else if (authVariant === "sign in") {
         await signIn("credentials", {
           email,
           password,
         });
       }
+      toast.success("Login successfully!");
     } catch (error) {
+      toast.error("Something went wrong!");
       console.log(error);
     }
   };

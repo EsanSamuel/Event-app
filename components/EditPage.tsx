@@ -10,6 +10,7 @@ import { $Enums, Event, User } from "@prisma/client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState, useTransition } from "react";
+import toast from "react-hot-toast";
 import { SiGooglegemini } from "react-icons/si";
 
 interface categoryProps {
@@ -178,9 +179,11 @@ const EditPage = ({ event, currentUser, isAuthorized }: IEvent) => {
           category: category as $Enums.EventCategory,
           eventId: event.id,
         });
+        toast.success("Event edited successfully!");
         router.push(`/event-details/${event.id}`);
       });
     } catch (error) {
+      toast.error("Event editing failed");
       console.log(error);
     }
   };

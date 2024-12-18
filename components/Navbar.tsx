@@ -9,11 +9,13 @@ import { userAgent } from "next/server";
 import Image from "next/image";
 import { User } from "@prisma/client";
 import { IoLogOutOutline } from "react-icons/io5";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const { data: session } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     const getUser = async () => {
@@ -36,19 +38,22 @@ const Navbar = () => {
             </Button>
           ) : (
             <div className="flex gap-2 items-center">
-            <IoMdNotificationsOutline size={22} />
-            <IoLogOutOutline size={22} onClick={() => signOut()} />
-                <Image
+              <IoMdNotificationsOutline size={22} />
+              <IoLogOutOutline
+                size={22}
+                className="cursor-pointer hover:opacity-50"
+                onClick={() => signOut()}
+              />
+              <Image
                 src={user?.image!}
                 alt={user?.username!}
                 width={200}
                 height={200}
                 className="w-10 h-10 rounded-full"
+                onClick={() => router.push("/profile")}
               />
-              
             </div>
           )}
-         
         </div>
       </div>
       {openLoginModal && (

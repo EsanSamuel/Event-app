@@ -18,7 +18,7 @@ const Card = ({ event }: EventProps) => {
   return (
     <div className=" flex flex-col gap-3 max-w-[300px]">
       <Image
-        src={event.thumbnail! || ""}
+        src={event.thumbnail!}
         alt="event image"
         className="rounded-[10px] w-full h-[140px]"
         width={300}
