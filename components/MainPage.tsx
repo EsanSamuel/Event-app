@@ -27,7 +27,6 @@ interface FilterProps {
   id: number;
   category: string;
 }
-[];
 
 const MainPage = ({ events }: Props) => {
   const [search, setSearch] = React.useState("");

@@ -71,7 +71,7 @@ const ProfilePage = ({
       setUserReserved(userRsvd);
     };
     filterReserved();
-  }, [currentUser?.id]);
+  }, [currentUser?.id, rsvd]);
 
   return (
     <div>
