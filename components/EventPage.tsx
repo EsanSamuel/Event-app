@@ -591,7 +591,7 @@ const EventPage = ({
             className="rounded-full bg-[#1da1f2] lg:w-[400px] w-full mt-10 hover:bg-[#1da1f2]"
             onClick={generateQrcode}
           >
-            Youve reserved! Generate QR code
+            You&#8209;ve reserved! Generate QR code
           </Button>
         )}
         {(isAuthorized || isAuthor) && (
