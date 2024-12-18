@@ -6,17 +6,17 @@ import {
 } from "@/lib/actions/event.actions";
 import { getCurrentUser } from "@/lib/actions/getCurrentUser.action";
 import React from "react";
+import { GetServerSidePropsContext } from "next";
 
-interface IParams {
-  params: {
-    id: string;
-  };
-}
+const page = async ({ params }: GetServerSidePropsContext) => {
+  const id = params?.id as string;
 
-const page = async ({ params }: IParams) => {
+  if (!id) {
+    throw new Error("Event ID is required.");
+  }
   const currentUser = await getCurrentUser();
-  const event = await getEvent(params?.id);
-  const rsvd = await getAllReserved(params?.id);
+  const event = await getEvent(id);
+  const rsvd = await getAllReserved(id);
   const isAuthorized = await authorizeRole(currentUser?.id!, event?.id!, [
     "ADMIN",
     "MODERATOR",

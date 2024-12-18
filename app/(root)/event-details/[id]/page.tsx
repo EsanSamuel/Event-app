@@ -10,6 +10,7 @@ import {
 import { getCurrentUser } from "@/lib/actions/getCurrentUser.action";
 import { getUsers } from "@/lib/actions/user.actions";
 import React from "react";
+import { GetServerSidePropsContext } from "next";
 
 interface IParams {
   params: {
@@ -17,14 +18,20 @@ interface IParams {
   };
 }
 
-const page = async ({ params }: IParams) => {
+const page = async ({ params }: GetServerSidePropsContext) => {
+  const id = params?.id as string;
+
+  if (!id) {
+    throw new Error("Event ID is required.");
+  }
+
   const currentUser = await getCurrentUser();
-  const event = await getEvent(params?.id);
-  const guests = await getGuests(params?.id);
-  const rsvd = await getAllReserved(params?.id);
-  const bookmarked = await getBookmarkedEvents(params.id);
+  const event = await getEvent(id);
+  const guests = await getGuests(id);
+  const rsvd = await getAllReserved(id);
+  const bookmarked = await getBookmarkedEvents(id);
   const users = await getUsers();
-  const organizers = await getOrganizers(params?.id);
+  const organizers = await getOrganizers(id);
   const isAuthorized = await authorizeRole(currentUser?.id!, event?.id!, [
     "ADMIN",
     "MODERATOR",
