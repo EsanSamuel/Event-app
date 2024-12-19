@@ -72,15 +72,12 @@ const ProfilePage = ({
   bookmarked,
   allOrganizedEvents,
 }: Props) => {
-  const router = useRouter();
-  if (!currentUser) {
-    return router.push("/");
-  }
   const [username, setUsername] = useState<string>(currentUser.username);
   const [image, setImage] = useState<string>(currentUser.image!);
   const [userReserved, setUserReserved] = React.useState<IReserveProps[]>([]);
   const path = usePathname();
   const [isPending, startTransition] = useTransition();
+const router = useRouter();
 
   React.useEffect(() => {
     const filterReserved = async () => {
