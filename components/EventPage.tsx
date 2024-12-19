@@ -480,7 +480,7 @@ const EventPage = ({
                     </label>
                   </div>
                 ) : (
-                  <p className="mt-2 text-gray-500">
+                  <p className="mt-2 text-gray-500 text-[12px] text-center">
                     Only Event Admin can add organizers!
                   </p>
                 )}
@@ -542,7 +542,7 @@ const EventPage = ({
                     </AlertDialogContent>
                   </AlertDialog>
                 ) : (
-                  <p>Only Author or Admin can delete Event!</p>
+                  <p className="text-[12px] text-center">Only Author or Admin can delete Event!</p>
                 )}
               </div>
             </AlertDialogContent>

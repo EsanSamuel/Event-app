@@ -1,11 +1,25 @@
 "use client";
 import { Event, Organizer, User } from "@prisma/client";
-import React from "react";
+import React, { useState, useTransition } from "react";
 import Image from "next/image";
 import { Separator } from "./ui/separator";
 import Card from "./Card";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
+import { CiEdit } from "react-icons/ci";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { updateUser } from "@/lib/actions/user.actions";
+import toast from "react-hot-toast";
 
 interface Props {
   currentUser: User;
@@ -58,8 +72,15 @@ const ProfilePage = ({
   bookmarked,
   allOrganizedEvents,
 }: Props) => {
-  const [userReserved, setUserReserved] = React.useState<IReserveProps[]>([]);
   const router = useRouter();
+  if (!currentUser) {
+    return router.push("/");
+  }
+  const [username, setUsername] = useState<string>(currentUser.username);
+  const [image, setImage] = useState<string>(currentUser.image!);
+  const [userReserved, setUserReserved] = React.useState<IReserveProps[]>([]);
+  const path = usePathname();
+  const [isPending, startTransition] = useTransition();
 
   React.useEffect(() => {
     const filterReserved = async () => {
@@ -73,6 +94,33 @@ const ProfilePage = ({
     filterReserved();
   }, [currentUser?.id, rsvd]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.includes("image")) {
+      console.log("Select Image only!");
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result as string;
+
+      setImage(result);
+    };
+  };
+
+  const editUser = async () => {
+    try {
+      startTransition(async () => {
+        await updateUser({ username, image, path });
+      });
+      toast.success("Profile edited!");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div>
       <div className="flex flex-col gap-4">
@@ -85,9 +133,61 @@ const ProfilePage = ({
         />
         <div className="flex justify-between items-center">
           <div className="mt-4 flex flex-col gap-1 pb-5">
-            <h1 className="text-[15px] font-bold flex b">
-              {currentUser.username}
-            </h1>
+            <div className="flex gap-4">
+              <h1 className="text-[15px] font-bold flex b">
+                {currentUser.username}{" "}
+              </h1>
+              <AlertDialog>
+                <AlertDialogTrigger>
+                  <CiEdit size={22} />
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Edit Profile</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      <div className=" mt-3 flex flex-col gap-2">
+                        {image && (
+                          <div className="flex items-center justify-center rounded-full">
+                            <Image
+                              src={image}
+                              width={200}
+                              height={200}
+                              className="rounded-full w-20 h-20"
+                              alt="profile image"
+                            />
+                          </div>
+                        )}
+                        <label className="flex flex-col gap-2">
+                          <h1 className="text-[12px] text-start">Edit name</h1>
+                          <input
+                            className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                            placeholder="Enter Name"
+                            type="text"
+                            onChange={(e) => setUsername(e.target.value)}
+                            value={username}
+                          />
+                        </label>
+
+                        <label className="flex flex-col gap-2">
+                          <h1 className="text-[12px] text-start">Edit Image</h1>
+                          <input
+                            className="rounded-full py-3 px-5 bg-gray-100 w-full text-[12px]"
+                            type="file"
+                            onChange={handleImageChange}
+                          />
+                        </label>
+                      </div>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={editUser}>
+                      {isPending ? "Updating..." : "Edit Profile"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
             <p className="text-[13px]">{currentUser.email}</p>
           </div>
           <div>

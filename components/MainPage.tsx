@@ -120,7 +120,7 @@ const MainPage = ({ events }: Props) => {
       <Navbar />
       <div className="lg:px-10 p-3">
         <div className="bg-[#F0F8FF] rounded-[20px]">
-          <div className=" flex flex-col lg:px-[20%] p-10">
+          <div className=" flex flex-col lg:px-[20%] lg:p-10 p-5 py-10">
             <h1 className="lg:text-[40px] text-[25px]  font-bold text-center">
               Your all in one event tracking application!
             </h1>

@@ -11,6 +11,7 @@ export type UserType = z.infer<typeof validateUser>;
 export const validateUpdateUser = z.object({
   username: z.string().min(1).max(30),
   image: z.string().optional(),
+  path: z.string(),
 });
 
 export type UpdateUserType = z.infer<typeof validateUpdateUser>;

@@ -4,6 +4,7 @@ import { UpdateUserType, UserType } from "../zod";
 import bcrypt from "bcryptjs";
 import getSession from "./session.action";
 import { v2 as cloudinary } from "cloudinary";
+import { revalidatePath } from "next/cache";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
@@ -62,7 +63,7 @@ export const getUser = async () => {
   }
 };
 
-export const updateUser = async ({ username, image }: UpdateUserType) => {
+export const updateUser = async ({ username, image, path }: UpdateUserType) => {
   try {
     const session = await getSession();
     const ImageUrl = await cloudinary.uploader.upload(image!);
@@ -77,6 +78,7 @@ export const updateUser = async ({ username, image }: UpdateUserType) => {
       },
     });
 
+    revalidatePath(path);
     console.log(updateUser);
     return updateUser;
   } catch (error) {
