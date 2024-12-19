@@ -118,6 +118,7 @@ const ProfilePage = ({
       toast.success("Profile edited!");
     } catch (error) {
       console.log(error);
+      toast.error("Something went wrong!");
     }
   };
 
