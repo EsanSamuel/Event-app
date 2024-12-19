@@ -11,6 +11,8 @@ import {
 import { getCurrentUser } from "@/lib/actions/getCurrentUser.action";
 import React from "react";
 
+export const dynamic = "force-dynamic";
+
 const Profile = async () => {
   const currentUser = await getCurrentUser();
   const userEvents = await getUserEvent(currentUser?.id!);

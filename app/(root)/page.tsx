@@ -2,7 +2,7 @@ import MainPage from "@/components/MainPage";
 import { getEvents } from "@/lib/actions/event.actions";
 import React from "react";
 
-//text-[#1da1f2]
+export const dynamic = "force-dynamic";
 
 const page = async () => {
   const events = await getEvents();
