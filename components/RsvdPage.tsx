@@ -1,9 +1,7 @@
 "use client";
 import { Event, Reserve, User } from "@prisma/client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { format } from "date-fns";
-import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
 
 interface Props {
   event: Event & {
@@ -20,15 +18,8 @@ interface Props {
   isAuthorized: boolean;
 }
 
-const RsvdPage = ({ event, rsvd, currentUser, isAuthorized }: Props) => {
+const RsvdPage = ({ rsvd }: Props) => {
   const [searchUser, setSearchUser] = useState("");
-  const router = useRouter();
-
-  useEffect(() => {
-    if (currentUser.id !== event?.user?.id || !isAuthorized)
-      toast.error("You are not allowed in this page!");
-    return router.push(`/event-details/${event.id}`);
-  });
 
   const filterUsers = () => {
     if (!searchUser.trim()) {
